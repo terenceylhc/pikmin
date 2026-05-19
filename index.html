@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pikmin 飾品精準管理系統 (官方順序雲端版)</title>
+    <title>Pikmin 飾品精準管理系統 (極速版)</title>
     <style>
         :root {
             --bg-color: #f4f7f6;
@@ -22,7 +22,7 @@
         body { font-family: -apple-system, sans-serif; background: var(--bg-color); color: var(--text-color); padding: 15px; margin: 0; }
         header { text-align: center; margin-bottom: 15px; }
         h1 { color: #2e7d32; margin-bottom: 5px; font-size: 1.6rem; }
-        .mode-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; background: #e2e8f0; margin-bottom: 10px; }
+        .mode-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; background: #e2e8f0; margin-bottom: 10px; transition: all 0.3s; }
         
         .dashboard { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
         .panel { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex: 1; min-width: 280px; }
@@ -59,7 +59,7 @@
 
     <header>
         <h1>🌱 Pikmin 飾品精準管理背包</h1>
-        <div id="system-mode" class="mode-badge">📡 雲端連線中...</div>
+        <div id="system-mode" class="mode-badge" style="background:#fef08a; color:#854d0e;">⏳ 讀取快取中...</div>
         <div style="font-size:0.8rem; color:#64748b;">點擊卡片：未獲得 ⚪ ➔ 培育中/未4心 🟡 ➔ 已穿戴飾品 🟢</div>
     </header>
 
@@ -95,7 +95,7 @@
     <div id="main-content"></div>
 
     <script>
-        // ✅ 已經為你填入專屬的 Google Apps Script 雲端 API 網址
+        // ✅ 你的專屬 Google Apps Script 雲端 API 網址
         const BASE_URL = "https://script.google.com/macros/s/AKfycby_MQj5Xc87ieW1RJVqh7QJRhYWhAi8h92H5yGNZA5Ewg9wV2vRW01cIdnDqmskwAOS/exec"; 
 
         let isCloudMode = false;
@@ -107,7 +107,7 @@
             { id: "purple", name: "紫" }, { id: "white", name: "白" }, { id: "winged", name: "羽翅" }, { id: "rock", name: "岩石" }
         ];
 
-        // 🌟 核心資料庫：50 大官方對齊分類，搭配你修正的精密繁體中文專有名詞
+        // 50 大官方對齊分類資料庫
         const pikminData = [
             { category: "🍽️ 餐廳（廚師帽）", items: colors.map(c => ({ id: `restaurant_${c.id}`, color: c.id, colorName: c.name, name: "廚師帽" })) },
             { category: "☕ 咖啡廳", items: colors.slice(0, 3).map(c => ({ id: `cafe_${c.id}`, color: c.id, colorName: c.name, name: "咖啡杯" })) },
@@ -170,44 +170,58 @@
             { category: "💾 世界遊戲：遊戲卡匣", items: colors.map(c => ({ id: `cartridge_${c.id}`, color: c.id, colorName: c.name, name: "復古卡匣" })) }
         ];
 
+        // ⚡ 核心優化：網頁一打開，立刻渲染「本機暫存資料」，0秒看見卡片！
+        function loadCachedData() {
+            let localProgress = JSON.parse(localStorage.getItem(`pikmin_cloud_cache_${currentUsername}`)) || JSON.parse(localStorage.getItem('pikmin_local_progress')) || {};
+            globalData = { [currentUsername]: localProgress };
+            updateLeaderboard();
+            renderSystem();
+        }
+
         async function initSystem() {
+            // 1. 優先載入手機內建快取，達到「秒開」效果
+            loadCachedData();
+
+            if (!BASE_URL) return;
+
+            // 設置3.5秒超時，如果Google伺服器真的卡死，也不會影響使用
             const controller = new AbortController();
             const timeoutId = setTimeout(() => {
                 controller.abort();
-                switchToLocalMode("⚠️ 雲端讀取超時，已啟用手機本機儲存");
-            }, 3000);
+                document.getElementById('system-mode').innerText = "💾 離線快取瀏覽中";
+                document.getElementById('system-mode').style.background = "#e2e8f0";
+                document.getElementById('system-mode').style.color = "#475569";
+                document.getElementById('loading-text').innerText = "💡 雲端連線較慢，目前使用本機最新暫存。";
+            }, 3500);
 
             try {
+                // 2. 在背景默默去跟雲端同步最新數據
                 const response = await fetch(`${BASE_URL}?action=getData`, { signal: controller.signal });
                 clearTimeout(timeoutId);
                 const result = await response.json();
+                
                 if (result.status === "success") {
                     isCloudMode = true;
                     document.getElementById('system-mode').innerText = "🌐 雲端連線同步中";
                     document.getElementById('system-mode').style.background = "#dcfce7";
                     document.getElementById('system-mode').style.color = "#166534";
+                    document.getElementById('loading-text').innerText = "✨ 雲端資料已同步更新";
+                    
                     globalData = result.data;
+                    
+                    // 3. 默默把最新雲端資料覆蓋回本機快取，下次打開更快
+                    if (globalData[currentUsername]) {
+                        localStorage.setItem(`pikmin_cloud_cache_${currentUsername}`, JSON.stringify(globalData[currentUsername]));
+                    }
+                    
                     updateLeaderboard();
                     renderSystem();
-                } else {
-                    switchToLocalMode("⚠️ 雲端格式異常，已改用本機模式");
                 }
             } catch (e) {
                 clearTimeout(timeoutId);
-                switchToLocalMode("⚠️ 無法連上雲端，已自動啟用手機本機儲存");
+                // 失敗了也沒關係，因為第一步已經把畫面畫出來了
+                console.log("雲端同步失敗或超時，繼續使用本機快取模式");
             }
-        }
-
-        function switchToLocalMode(msg) {
-            isCloudMode = false;
-            document.getElementById('system-mode').innerText = "💾 單機離線儲存版";
-            document.getElementById('loading-text').innerText = msg;
-            
-            let localProgress = JSON.parse(localStorage.getItem(`pikmin_local_progress_${currentUsername}`)) || JSON.parse(localStorage.getItem('pikmin_local_progress')) || {};
-            globalData = { [currentUsername]: localProgress };
-            
-            updateLeaderboard();
-            renderSystem();
         }
 
         function login() {
@@ -215,15 +229,8 @@
             if(!input) return alert("請輸入名字！");
             currentUsername = input;
             localStorage.setItem('pikmin_server_user', currentUsername);
-            
-            if (!isCloudMode) {
-                let localProgress = JSON.parse(localStorage.getItem(`pikmin_local_progress_${currentUsername}`)) || {};
-                globalData = { [currentUsername]: localProgress };
-                updateLeaderboard();
-                renderSystem();
-            } else {
-                renderSystem();
-            }
+            loadCachedData();
+            initSystem(); // 換名字後重新跟雲端核對進度
         }
 
         function updateLeaderboard() {
@@ -298,12 +305,13 @@
             if (!globalData[currentUsername]) globalData[currentUsername] = {};
             globalData[currentUsername][pikminId] = nextStatus;
 
+            // 樂觀即時儲存至本地快取
+            localStorage.setItem(`pikmin_cloud_cache_${currentUsername}`, JSON.stringify(globalData[currentUsername]));
+            updateLeaderboard();
+            renderSystem();
+
             if (!isCloudMode) {
-                localStorage.setItem(`pikmin_local_progress_${currentUsername}`, JSON.stringify(globalData[currentUsername]));
-                localStorage.setItem(`pikmin_local_progress`, JSON.stringify(globalData[currentUsername]));
-                document.getElementById('loading-text').innerText = "✅ 已安全存於本機";
-                updateLeaderboard();
-                renderSystem();
+                document.getElementById('loading-text').innerText = "✅ 已安全存於本機儲存區";
             } else {
                 try {
                     await fetch(BASE_URL, {
@@ -311,10 +319,8 @@
                         body: JSON.stringify({ action: "toggleStatus", username: currentUsername, pikmin_id: pikminId, status: nextStatus })
                     });
                     document.getElementById('loading-text').innerText = "☁️ 雲端同步成功";
-                    updateLeaderboard();
-                    renderSystem();
                 } catch(e) {
-                    document.getElementById('loading-text').innerText = "❌ 雲端失敗，已自動鎖定於本地";
+                    document.getElementById('loading-text').innerText = "❌ 雲端失敗，已儲存於本地";
                 }
             }
         }
