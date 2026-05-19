@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pikmin 飾品精準管理系統</title>
+    <title>Pikmin 飾品精準管理系統 (官方順序雲端版)</title>
     <style>
         :root {
             --bg-color: #f4f7f6;
@@ -76,7 +76,7 @@
         <div class="panel">
             <h3>🏆 飾品收集進度榜</h3>
             <ul id="leaderboard" class="leaderboard-list">
-                <li>單機模式下僅計算個人進度</li>
+                <li>正在從雲端載入進度榜...</li>
             </ul>
         </div>
     </div>
@@ -95,7 +95,7 @@
     <div id="main-content"></div>
 
     <script>
-        // ⚠️ 如果你有設定 Google Apps Script，請把網址貼在下面。若保持空白則會自動跑超流暢的「單機離線保存模式」！
+        // ✅ 已經為你填入專屬的 Google Apps Script 雲端 API 網址
         const BASE_URL = "https://script.google.com/macros/s/AKfycby_MQj5Xc87ieW1RJVqh7QJRhYWhAi8h92H5yGNZA5Ewg9wV2vRW01cIdnDqmskwAOS/exec"; 
 
         let isCloudMode = false;
@@ -107,54 +107,59 @@
             { id: "purple", name: "紫" }, { id: "white", name: "白" }, { id: "winged", name: "羽翅" }, { id: "rock", name: "岩石" }
         ];
 
-        // 依據全套圖鑑與隱藏子分類，精準重構的巨量遊戲資料庫
+        // 🌟 核心資料庫：50 大官方對齊分類，搭配你修正的精密繁體中文專有名詞
         const pikminData = [
             { category: "🍽️ 餐廳（廚師帽）", items: colors.map(c => ({ id: `restaurant_${c.id}`, color: c.id, colorName: c.name, name: "廚師帽" })) },
             { category: "☕ 咖啡廳", items: colors.slice(0, 3).map(c => ({ id: `cafe_${c.id}`, color: c.id, colorName: c.name, name: "咖啡杯" })) },
-            { category: "🥖 麵包店", items: colors.map(c => ({ id: `bakery_${c.id}`, color: c.id, colorName: c.name, name: "法式長棍" })) },
-            { category: "✂️ 美容院", items: colors.map(c => ({ id: `salon_${c.id}`, color: c.id, colorName: c.name, name: "剪刀與梳子" })) },
-            { category: "👚 服裝店", items: colors.map(c => ({ id: `clothes_${c.id}`, color: c.id, colorName: c.name, name: "徽章夾" })) },
-            { category: "🌳 公園（幸運草）", items: colors.map(c => ({ id: `park_clover_${c.id}`, color: c.id, colorName: c.name, name: "幸運草" })) },
-            { category: "🍀 公園（四葉幸運草）", items: colors.map(c => ({ id: `park_four_clover_${c.id}`, color: c.id, colorName: c.name, name: "四葉幸運草" })) },
+            { category: "🧁 甜點店（馬卡龍）", items: colors.map(c => ({ id: `sweet_macaron_${c.id}`, color: c.id, colorName: c.name, name: "馬卡龍" })) },
+            { category: "🍩 甜點店（甜甜圈）", items: colors.map(c => ({ id: `sweet_donut_${c.id}`, color: c.id, colorName: c.name, name: "甜甜圈" })) },
+            { category: "🎬 電影院", items: colors.map(c => ({ id: `cinema_${c.id}`, color: c.id, colorName: c.name, name: "爆米花" })) },
             { category: "💊 藥局", items: colors.map(c => ({ id: `pharmacy_${c.id}`, color: c.id, colorName: c.name, name: "牙刷" })) },
             { category: "🦁 動物園", items: colors.map(c => ({ id: `zoo_${c.id}`, color: c.id, colorName: c.name, name: "蒲公英" })) },
             { category: "🪲 森林（鍬形蟲）", items: colors.map(c => ({ id: `forest_beetle_${c.id}`, color: c.id, colorName: c.name, name: "鍬形蟲" })) },
             { category: "🌰 森林（橡栗）", items: colors.map(c => ({ id: `forest_acorn_${c.id}`, color: c.id, colorName: c.name, name: "橡栗" })) },
-            { category: "🌊 水邊", items: colors.map(c => ({ id: `water_${c.id}`, color: c.id, colorName: c.name, name: "擬餌" })) },
-            { category: "🧁 甜點店（馬卡龍）", items: colors.map(c => ({ id: `sweet_macaron_${c.id}`, color: c.id, colorName: c.name, name: "馬卡龍" })) },
-            { category: "🍩 甜點店（甜甜圈）", items: colors.map(c => ({ id: `sweet_donut_${c.id}`, color: c.id, colorName: c.name, name: "甜甜圈" })) },
-            { category: "🎬 電影院", items: colors.map(c => ({ id: `cinema_${c.id}`, color: c.id, colorName: c.name, name: "爆米花" })) },
+            { category: "🌊 水邊（擬餌）", items: colors.map(c => ({ id: `water_${c.id}`, color: c.id, colorName: c.name, name: "擬餌" })) },
+            { category: "📮 郵局", items: colors.map(c => ({ id: `post_${c.id}`, color: c.id, colorName: c.name, name: "郵票" })) },
+            { category: "🖼️ 美術館（畫框）", items: colors.map(c => ({ id: `art_frame_${c.id}`, color: c.id, colorName: c.name, name: "畫框" })) },
             { category: "✈️ 機場", items: colors.map(c => ({ id: `airport_${c.id}`, color: c.id, colorName: c.name, name: "玩具飛機" })) },
             { category: "🚇 車站（電車紙模型）", items: colors.map(c => ({ id: `station_paper_${c.id}`, color: c.id, colorName: c.name, name: "電車紙模型" })) },
             { category: "🎟️ 車站（票券）", items: colors.map(c => ({ id: `station_ticket_${c.id}`, color: c.id, colorName: c.name, name: "票券" })) },
             { category: "🏖️ 海灘", items: colors.map(c => ({ id: `beach_${c.id}`, color: c.id, colorName: c.name, name: "貝殼" })) },
-            { category: "🍔 漢堡店", items: colors.slice(0, 4).map(c => ({ id: `burger_${c.id}`, color: c.id, colorName: c.name, name: "漢堡帽" })) },
-            { category: "🏪 便利店", items: colors.map(c => ({ id: `convenience_${c.id}`, color: c.id, colorName: c.name, name: "零食包裝/瓶蓋" })) },
-            { category: "🛒 超市", items: colors.map(c => ({ id: `supermarket_${c.id}`, color: c.id, colorName: c.name, name: "菇類/香蕉" })) },
-            { category: "📮 郵局", items: colors.map(c => ({ id: `post_${c.id}`, color: c.id, colorName: c.name, name: "郵票" })) },
-            { category: "🖼️ 美術館（畫框）", items: colors.map(c => ({ id: `art_frame_${c.id}`, color: c.id, colorName: c.name, name: "畫框" })) },
+            { category: "🍔 漢堡店（漢堡）", items: colors.slice(0, 4).map(c => ({ id: `burger_${c.id}`, color: c.id, colorName: c.name, name: "漢堡" })) },
+            { category: "🏪 便利店（瓶蓋）", items: colors.map(c => ({ id: `convenience_cap_${c.id}`, color: c.id, colorName: c.name, name: "瓶蓋" })) },
+            { category: "🍿 便利店（零食）", items: colors.map(c => ({ id: `convenience_snack_${c.id}`, color: c.id, colorName: c.name, name: "零食" })) },
+            { category: "🍄 超市（蘑菇）", items: colors.map(c => ({ id: `supermarket_mushroom_${c.id}`, color: c.id, colorName: c.name, name: "蘑菇" })) },
+            { category: "🍌 超市（香蕉）", items: colors.map(c => ({ id: `supermarket_banana_${c.id}`, color: c.id, colorName: c.name, name: "香蕉" })) },
+            { category: "🥖 麵包店（法國麵包）", items: colors.map(c => ({ id: `bakery_${c.id}`, color: c.id, colorName: c.name, name: "法國麵包" })) },
+            { category: "✂️ 美容院", items: colors.map(c => ({ id: `salon_${c.id}`, color: c.id, colorName: c.name, name: "剪刀與梳子" })) },
+            { category: "👚 服裝店（髮圈）", items: colors.map(c => ({ id: `clothes_${c.id}`, color: c.id, colorName: c.name, name: "髮圈" })) },
+            { category: "🌳 公園（幸運草）", items: colors.map(c => ({ id: `park_clover_${c.id}`, color: c.id, colorName: c.name, name: "幸運草" })) },
+            { category: "🍀 公園（四葉幸運草）", items: colors.map(c => ({ id: `park_four_clover_${c.id}`, color: c.id, colorName: c.name, name: "四葉幸運草" })) },
             { category: "📖 圖書館", items: colors.map(c => ({ id: `library_${c.id}`, color: c.id, colorName: c.name, name: "迷你書本" })) },
+            { category: "🌳 路邊（貼紙）", items: colors.map(c => ({ id: `roadside_sticker_${c.id}`, color: c.id, colorName: c.name, name: "貼紙" })) },
+            { category: "🪙 路邊（金幣）", items: colors.map(c => ({ id: `roadside_coin_${c.id}`, color: c.id, colorName: c.name, name: "金幣" })) },
             { category: "🍣 壽司餐廳", items: colors.slice(0, 3).map(c => ({ id: `sushi_${c.id}`, color: c.id, colorName: c.name, name: "握壽司" })) },
-            { category: "⛰️ 山丘", items: colors.map(c => ({ id: `hill_${c.id}`, color: c.id, colorName: c.name, name: "登山記號" })) },
+            { category: "⛰️ 山丘（山丘別針徽章）", items: colors.map(c => ({ id: `hill_${c.id}`, color: c.id, colorName: c.name, name: "山丘別針徽章" })) },
             { category: "🏟️ 體育館", items: colors.map(c => ({ id: `stadium_${c.id}`, color: c.id, colorName: c.name, name: "鑰匙圈" })) },
             { category: "☔ 雨天", items: colors.slice(0, 3).map(c => ({ id: `rain_${c.id}`, color: c.id, colorName: c.name, name: "葉片帽" })) },
             { category: "❄️ 下雪", items: colors.slice(0, 2).map(c => ({ id: `snow_${c.id}`, color: c.id, colorName: c.name, name: "雪人" })) },
+            { category: "🎡 主題樂園", items: colors.map(c => ({ id: `amusement_${c.id}`, color: c.id, colorName: c.name, name: "門票" })) },
             { category: "🚌 公車站", items: colors.map(c => ({ id: `bus_${c.id}`, color: c.id, colorName: c.name, name: "公車玩具" })) },
             { category: "🍕 義式餐廳（披薩）", items: colors.map(c => ({ id: `italian_pizza_${c.id}`, color: c.id, colorName: c.name, name: "披薩" })) },
             { category: "🍝 義式餐廳（義大利麵）", items: colors.map(c => ({ id: `italian_pasta_${c.id}`, color: c.id, colorName: c.name, name: "義大利麵" })) },
             { category: "🍜 拉麵店", items: colors.slice(0, 3).map(c => ({ id: `ramen_${c.id}`, color: c.id, colorName: c.name, name: "拉麵吊飾" })) },
-            { category: "🌉 橋樑", items: colors.map(c => ({ id: `bridge_${c.id}`, color: c.id, colorName: c.name, name: "橋樑明信片" })) },
-            { category: "🏨 飯店", items: colors.map(c => ({ id: `hotel_${c.id}`, color: c.id, colorName: c.name, name: "文具組" })) },
-            { category: "💄 化妝品商店", items: colors.map(c => ({ id: `makeup_${c.id}`, color: c.id, colorName: c.name, name: "粉底/唇膏" })) },
-            { category: "⛩️ 神社和寺廟", items: colors.map(c => ({ id: `shrine_${c.id}`, color: c.id, colorName: c.name, name: "神籤" })) },
+            { category: "🌉 橋樑（橋樑別針）", items: colors.map(c => ({ id: `bridge_${c.id}`, color: c.id, colorName: c.name, name: "橋樑別針" })) },
+            { category: "🏨 飯店（飯店備品）", items: colors.map(c => ({ id: `hotel_${c.id}`, color: c.id, colorName: c.name, name: "飯店備品" })) },
+            { category: "💄 化妝品商店（化妝品）", items: colors.map(c => ({ id: `makeup_${c.id}`, color: c.id, colorName: c.name, name: "化妝品" })) },
+            { category: "⛩️ 神社和寺廟（運勢(吉)）", items: colors.map(c => ({ id: `shrine_${c.id}`, color: c.id, colorName: c.name, name: "運勢(吉)" })) },
             { category: "🔋 電器行（電池）", items: colors.map(c => ({ id: `battery_cell_${c.id}`, color: c.id, colorName: c.name, name: "電池" })) },
             { category: "💡 電器行（仙女燈）", items: [{ id: "battery_light_white", color: "white", colorName: "白", name: "仙女燈" }, { id: "battery_light_winged", color: "winged", colorName: "羽翅", name: "仙女燈" }] },
             { category: "🍛 咖哩餐廳", items: colors.map(c => ({ id: `curry_${c.id}`, color: c.id, colorName: c.name, name: "咖哩飯" })) },
-            { category: "🔧 五金行", items: colors.map(c => ({ id: `hardware_${c.id}`, color: c.id, colorName: c.name, name: "螺帽/螺絲" })) },
-            { category: "🎓 大學&學院", items: colors.slice(0, 3).map(c => ({ id: `university_${c.id}`, color: c.id, colorName: c.name, name: "學士帽" })) },
+            { category: "🔧 五金行（工具）", items: colors.map(c => ({ id: `hardware_${c.id}`, color: c.id, colorName: c.name, name: "工具" })) },
+            { category: "🎓 大學&學院（校徽胸針）", items: colors.slice(0, 3).map(c => ({ id: `university_${c.id}`, color: c.id, colorName: c.name, name: "校徽胸針" })) },
             { category: "🌮 墨西哥餐廳", items: colors.map(c => ({ id: `mexican_${c.id}`, color: c.id, colorName: c.name, name: "沙拉盆/塔可" })) },
             { category: "🧺 自助洗衣店&乾洗店", items: colors.map(c => ({ id: `laundry_${c.id}`, color: c.id, colorName: c.name, name: "曬衣夾" })) },
-            { category: "🥢 韓國餐廳", items: colors.map(c => ({ id: `korean_${c.id}`, color: c.id, colorName: c.name, name: "小菜碗" })) },
+            { category: "🥢 韓國餐廳（泡菜）", items: colors.map(c => ({ id: `korean_${c.id}`, color: c.id, colorName: c.name, name: "泡菜" })) },
             { category: "⭐ 特殊活動：超級瑪利歐鑰匙圈", items: colors.slice(0, 4).map(c => ({ id: `mario_${c.id}`, color: c.id, colorName: c.name, name: "瑪利歐帽/磚塊" })) },
             { category: "⭐ 特殊活動：禮物貼紙（金色）", items: colors.map(c => ({ id: `gift_gold_${c.id}`, color: c.id, colorName: c.name, name: "金貼紙" })) },
             { category: "⭐ 特殊活動：復活節彩蛋", items: colors.map(c => ({ id: `easter_${c.id}`, color: c.id, colorName: c.name, name: "彩蛋外殼" })) },
@@ -166,15 +171,10 @@
         ];
 
         async function initSystem() {
-            if (!BASE_URL) {
-                switchToLocalMode("💡 目前執行單機離線模式");
-                return;
-            }
-
             const controller = new AbortController();
             const timeoutId = setTimeout(() => {
                 controller.abort();
-                switchToLocalMode("⚠️ 雲端連線超時，已切換為單機存儲");
+                switchToLocalMode("⚠️ 雲端讀取超時，已啟用手機本機儲存");
             }, 3000);
 
             try {
@@ -190,11 +190,11 @@
                     updateLeaderboard();
                     renderSystem();
                 } else {
-                    switchToLocalMode("⚠️ 雲端資料異常，改用單機模式");
+                    switchToLocalMode("⚠️ 雲端格式異常，已改用本機模式");
                 }
             } catch (e) {
                 clearTimeout(timeoutId);
-                switchToLocalMode("⚠️ 無法連上雲端，已自動切換單機模式");
+                switchToLocalMode("⚠️ 無法連上雲端，已自動啟用手機本機儲存");
             }
         }
 
@@ -291,7 +291,7 @@
         }
 
         async function changeProgress(pikminId, nextStatus) {
-            if (currentUsername === "訪客") return alert("請先輸入名字點擊登入！");
+            if (currentUsername === "訪客") return alert("請先在上面欄位輸入你的名字點擊登入！");
             
             document.getElementById('loading-text').innerText = "⏳ 正在同步變更...";
 
@@ -301,7 +301,7 @@
             if (!isCloudMode) {
                 localStorage.setItem(`pikmin_local_progress_${currentUsername}`, JSON.stringify(globalData[currentUsername]));
                 localStorage.setItem(`pikmin_local_progress`, JSON.stringify(globalData[currentUsername]));
-                document.getElementById('loading-text').innerText = "✅ 已安全存於手機本機";
+                document.getElementById('loading-text').innerText = "✅ 已安全存於本機";
                 updateLeaderboard();
                 renderSystem();
             } else {
@@ -314,7 +314,7 @@
                     updateLeaderboard();
                     renderSystem();
                 } catch(e) {
-                    document.getElementById('loading-text').innerText = "❌ 雲端同步失敗，請重試";
+                    document.getElementById('loading-text').innerText = "❌ 雲端失敗，已自動鎖定於本地";
                 }
             }
         }
