@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pikmin 雲端 8色全圖鑑管理背包</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --border-color: #e2e8f0;
+            
+            /* 三階段狀態顏色 */
+            --status-missing-bg: #f8fafc;
+            --status-missing-border: #cbd5e1;
+            
+            --status-growing-bg: #fffdeb;
+            --status-growing-border: #fef08a;
+            --status-growing-text: #b45309;
+            
+            --status-decored-bg: #f0fdf4;
+            --status-decored-border: #bbf7d0;
+            --status-decored-text: #15803d;
+        }
+        
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); padding: 20px; margin: 0; }
+        header { text-align: center; margin-bottom: 20px; }
+        h1 { color: #2e7d32; margin-bottom: 5px; }
+        .hint { font-size: 0.85rem; color: #64748b; }
+
+        /* 儀表板區域 */
+        .dashboard { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 25px; }
+        .panel { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); flex: 1; min-width: 280px; }
+        .panel h3 { margin-top: 0; color: #334155; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
+        
+        .leaderboard-list { list-style: none; padding: 0; margin: 5px 0 0 0; }
+        .leaderboard-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; align-items: center; }
+        .score-badge { font-size: 0.9rem; }
+
+        /* 📌 顏色篩選列吸頂優化 */
+        .filters { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; position: sticky; top: 0; background: var(--bg-color); padding: 12px 0; z-index: 100; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .filter-btn { background: white; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: all 0.2s; }
+        .filter-btn.active { background: #2e7d32; color: white; border-color: #2e7d32; }
+
+        /* 區塊與卡片 */
+        .category-section { background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .category-title { color: #2e7d32; margin-top: 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; font-size: 1.25rem; }
+        .pikmin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 12px; }
+        
+        /* 皮克敏狀態卡片核心樣式 */
+        .pikmin-card { border: 2px solid var(--status-missing-border); border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; background: var(--status-missing-bg); opacity: 0.4; transition: all 0.2s ease; user-select: none; }
+        
+        /* 🟡 狀態 1：培育中 */
+        .pikmin-card.growing {
+            opacity: 0.9;
+            background: var(--status-growing-bg);
+            border-color: var(--status-growing-border);
+            box-shadow: 0 2px 8px rgba(234, 179, 8, 0.1);
+        }
+        /* 🟢 狀態 2：已穿戴飾品 */
+        .pikmin-card.decored {
+            opacity: 1;
+            background: var(--status-decored-bg);
+            border-color: var(--status-decored-border);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+        }
+
+        .pikmin-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        
+        /* 🎨 官方 8 色標籤樣式 */
+        .badge { display: inline-block; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; color: white; margin-bottom: 6px; font-weight: bold; }
+        .badge-red { background: #ef5350; } 
+        .badge-blue { background: #42a5f5; } 
+        .badge-yellow { background: #ffca28; color:#333; }
+        .badge-purple { background: #ab47bc; } 
+        .badge-white { background: #e0e0e0; color:#333; border: 1px solid #ccc; }
+        .badge-winged { background: #f48fb1; } 
+        .badge-rock { background: #78909c; }
+        .badge-ice { background: #90caf9; color:#0d47a1; border: 1px solid #64b5f6; } /* ❄️ 冰凍標籤 */
+        
+        .pikmin-name { font-size: 0.88rem; font-weight: 500; margin-bottom: 4px; min-height: 38px; display: flex; align-items: center; justify-content: center; color: #1e293b; }
+        
+        /* 狀態文字標籤 */
+        .status-label { font-size: 0.75rem; font-weight: bold; color: #94a3b8; }
+        .growing .status-label { color: var(--status-growing-text); }
+        .decored .status-label { color: var(--status-decored-text); }
+
+        .loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); display:flex; justify-content:center; align-items:center; font-weight:bold; font-size:1.2rem; z-index:999; }
+    </style>
+</head>
+<body>
+
+    <div id="loading" class="loading-overlay">🌱 正在載入台灣版皮克敏大背包...</div>
+
+    <header>
+        <h1>🌱 Pikmin 雲端 8色全圖鑑管理背包</h1>
+        <div class="hint">點擊卡片切換：未獲得 ⚪ ➔ 培育中/未4心 🟡 ➔ 已穿戴飾品 🟢</div>
+    </header>
+
+    <div class="dashboard">
+        <div class="panel">
+            <h3>🔑 訓練師身份</h3>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="username-input" placeholder="輸入你的名字" style="padding: 8px; flex: 1; border: 1px solid var(--border-color); border-radius: 6px;">
+                <button onclick="login()" style="background: #2e7d32; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight:bold;">登入</button>
+            </div>
+            <p style="margin: 10px 0 0 0; font-size: 0.9rem;">目前身份：<strong id="current-user" style="color: #2e7d32;">訪客</strong></p>
+        </div>
+
+        <div class="panel">
+            <h3>🏆 飾品收集進度榜</h3>
+            <ul id="leaderboard" class="leaderboard-list">
+                <li>正在載入數據...</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="filters">
+        <button class="filter-btn active" onclick="filterColor('all')">全部顯示</button>
+        <button class="filter-btn" onclick="filterColor('red')">紅</button>
+        <button class="filter-btn" onclick="filterColor('blue')">藍</button>
+        <button class="filter-btn" onclick="filterColor('yellow')">黃</button>
+        <button class="filter-btn" onclick="filterColor('purple')">紫</button>
+        <button class="filter-btn" onclick="filterColor('white')">白</button>
+        <button class="filter-btn" onclick="filterColor('winged')">羽翅</button>
+        <button class="filter-btn" onclick="filterColor('rock')">岩石</button>
+        <button class="filter-btn" onclick="filterColor('ice')">冰凍 ❄️</button>
+    </div>
+
+    <div id="main-content"></div>
+
+    <script>
+        // ⚠️ 請替換成你部署完 Apps Script 後取得的網頁應用程式 URL
+        const BASE_URL = "請在此處貼上你的GoogleAppsScript網址";
+
+        let currentUsername = localStorage.getItem('pikmin_server_user') || "訪客";
+        let globalCloudData = {}; 
+
+        // 🧬 產生標準 8 色基本清單（包含最新冰凍）
+        const colors8List = [
+            { code: "red", name: "紅" }, { code: "blue", name: "藍" }, { code: "yellow", name: "黃" },
+            { code: "purple", name: "紫" }, { code: "white", name: "白" }, { code: "winged", name: "羽翅" }, 
+            { code: "rock", name: "岩石" }, { code: "ice", name: "冰凍" }
+        ];
+        function create8Colors(prefix, decorName) {
+            return colors8List.map(c => ({ id: `${prefix}_${c.code}`, color: c.code, colorName: c.name, name: decorName }));
+        }
+
+        // 🧬 產生無冰凍的 7 色基本清單（用於不支援冰凍的舊景點）
+        const colors7List = colors8List.slice(0, 7);
+        function create7Colors(prefix, decorName) {
+            return colors7List.map(c => ({ id: `${prefix}_${c.code}`, color: c.code, colorName: c.name, name: decorName }));
+        }
+
+        // 🎮 台灣最新官方常駐大圖鑑數據庫（精密正名與拆分版）
+        const pikminData = [
+            { category: "🌳 路邊", items: create8Colors("roadside", "貼紙 / 硬幣") },
+            { category: "☕ 咖啡廳", items: create8Colors("cafe", "外帶杯 / 咖啡豆") },
+            
+            // 🍣 壽司店精確對應飾品（無冰凍）
+            { 
+                category: "🍣 壽司店", 
+                items: [
+                    { id: "sushi_red", color: "red", colorName: "紅", name: "玉子燒壽司" },
+                    { id: "sushi_blue", color: "blue", colorName: "藍", name: "鮪魚壽司" },
+                    { id: "sushi_yellow", color: "yellow", colorName: "黃", name: "鮮蝦壽司" },
+                    { id: "sushi_purple", color: "purple", colorName: "紫", name: "紫菜烤肉捲" },
+                    { id: "sushi_white", color: "white", colorName: "白", name: "章魚壽司" },
+                    { id: "sushi_winged", color: "winged", colorName: "羽翅", name: "鮭魚卵壽司" },
+                    { id: "sushi_rock", color: "rock", colorName: "岩石", name: "河童捲壽司" }
+                ] 
+            },
+            
+            { category: "🥖 麵包店", items: create7Colors("bakery", "法式長棍 / 羊角麵包") },
+            
+            // 🍏 超市雙系列拆分
+            { category: "🍏 超市：香蕉系列", items: create7Colors("supermarket_banana", "香蕉造型") },
+            { category: "🍄 超市：蘑菇系列", items: create7Colors("supermarket_mushroom", "條碼 / 蘑菇") },
+            
+            // 🏪 便利商店雙系列拆分
+            { category: "🏪 便利商店：零食包裝", items: create7Colors("convenience_snack", "零食餅乾袋") },
+            { category: "🍾 便利商店：環保瓶蓋", items: create7Colors("convenience_cap", "環保飲料瓶蓋") },
+            
+            { category: "💊 藥局", items: create7Colors("pharmacy", "牙刷 / 藥丸") },
+            { category: "🦁 動物園", items: create7Colors("zoo", "蒲公英 / 獅子徽章") },
+            { category: "🌳 公園", items: create7Colors("park", "幸運三葉草 / 四葉草") },
+            { category: "🖼️ 美術館/博物館", items: create7Colors("museum", "畫框 / 昆蟲標本") },
+            { category: "🎬 電影院", items: create7Colors("cinema", "爆米花 / 電影膠捲") },
+            { category: "👗 服飾店", items: create7Colors("clothing", "安全別針 / 髮圈") },
+            { category: "🧸 玩具店", items: create7Colors("toystore", "塑膠積木 / 發條") },
+            { category: "📚 書店", items: create7Colors("bookstore", "精裝書本") },
+            { category: "酒店/飯店", items: create7Colors("hotel", "房間鑰匙") },
+            { category: "✂️ 美髮沙龍", items: create7Colors("hair_salon", "理髮剪刀 / 梳子") },
+            { category: "⚡ 電器行", items: create7Colors("electronics", "小電池 / 燈泡") },
+            { category: "🦞 海灘", items: create7Colors("beach", "天然貝殼") },
+            { category: "✈️ 機場", items: create7Colors("airport", "玩具飛機") },
+            
+            // 🚄 車站雙系列拆分
+            { category: "🎫 車站：切符車票", items: create7Colors("station_ticket", "紙車票（印站名）") },
+            { category: "🚂 車站：紙火車頭", items: [
+                { id: "station_train_red", color: "red", colorName: "紅", name: "紅色紙火車頭" },
+                { id: "station_train_blue", color: "blue", colorName: "藍", name: "藍色紙火車頭" },
+                { id: "station_train_yellow", color: "yellow", colorName: "黃", name: "黃色紙火車頭" }
+            ]},
+
+            { category: "🍔 速食店", items: create7Colors("fastfood", "漢堡包餐 / 薯條") },
+            { category: "🍜 拉麵店", items: create7Colors("ramen", "拉麵碗吊飾") },
+            { category: "🍦 甜點店", items: create7Colors("dessert", "馬卡龍 / 甜甜圈") },
+            { category: "⛰️ 山景", items: create7Colors("mountain", "登山徽章") },
+            
+            // 🌦️ 氣象多天氣精密拆分
+            { category: "🌦️ 氣象限定：下雨天", items: [
+                { id: "weather_rain_red", color: "red", colorName: "紅", name: "葉子雨傘" },
+                { id: "weather_rain_blue", color: "blue", colorName: "藍", name: "葉子雨傘" },
+                { id: "weather_rain_yellow", color: "yellow", colorName: "黃", name: "葉子雨傘" }
+            ]},
+            { category: "☀️ 氣象限定：大晴天", items: [
+                { id: "weather_sun_winged", color: "winged", colorName: "羽翅", name: "晴天紙帽子" }
+            ]},
+            { category: "❄️ 氣象限定：下雪天", items: [
+                { id: "weather_snow_white", color: "white", colorName: "白", name: "雪人飾品" },
+                { id: "weather_snow_ice", color: "ice", colorName: "ice", name: "雪人飾品" }
+            ]}
+        ];
+
+        async function fetchCloudData() {
+            showLoading(true);
+            try {
+                const response = await fetch(`${BASE_URL}?action=getData`);
+                const result = await response.json();
+                if (result.status === "success") {
+                    globalCloudData = result.data;
+                    updateLeaderboard();
+                    renderSystem();
+                }
+            } catch (e) {
+                alert("讀取雲端失敗，請確認網路或 GAS 部署設定為「所有人」。");
+            }
+            showLoading(false);
+        }
+
+        function login() {
+            const input = document.getElementById('username-input').value.trim();
+            if(!input) return alert("請輸入名字！");
+            currentUsername = input;
+            localStorage.setItem('pikmin_server_user', currentUsername);
+            document.getElementById('current-user').innerText = currentUsername;
+            renderSystem();
+        }
+
+        function updateLeaderboard() {
+            const leaderboardUl = document.getElementById('leaderboard');
+            leaderboardUl.innerHTML = '';
+            
+            let scores = [];
+            for (let user in globalCloudData) {
+                let decoredCount = 0;
+                let growingCount = 0;
+                for (let pid in globalCloudData[user]) {
+                    if (globalCloudData[user][pid] === "decored") decoredCount++;
+                    else if (globalCloudData[user][pid] === "growing") growingCount++;
+                }
+                scores.push({ name: user, decored: decoredCount, growing: growingCount });
+            }
+
+            scores.sort((a,b) => b.decored - a.decored || b.growing - a.growing);
+            
+            if(scores.length === 0) {
+                leaderboardUl.innerHTML = '<li>暫無訓練師數據</li>';
+                return;
+            }
+
+            scores.forEach(s => {
+                leaderboardUl.innerHTML += `
+                    <li class="leaderboard-item">
+                        <span>👤 ${s.name}</span>
+                        <span class="score-badge">
+                            <b style="color:#15803d;">${s.decored} 🟢</b> 
+                            <span style="color:#b45309; margin-left:5px;">${s.growing} 🟡</span>
+                        </span>
+                    </li>`;
+            });
+        }
+
+        function renderSystem() {
+            document.getElementById('current-user').innerText = currentUsername;
+            const container = document.getElementById('main-content');
+            container.innerHTML = '';
+
+            const myProgress = globalCloudData[currentUsername] || {};
+
+            pikminData.forEach(cat => {
+                const section = document.createElement('div');
+                section.className = 'category-section';
+                section.innerHTML = `<h2 class="category-title">${cat.category}</h2>`;
+                
+                const grid = document.createElement('div');
+                grid.className = 'pikmin-grid';
+
+                cat.items.forEach(item => {
+                    const currentStatus = myProgress[item.id] || "missing"; 
+                    
+                    const card = document.createElement('div');
+                    card.className = `pikmin-card ${currentStatus}`;
+                    card.setAttribute('data-color', item.color);
+                    
+                    let nextStatus = "missing";
+                    let statusText = "⚪ 未獲得";
+                    if (currentStatus === "missing") { nextStatus = "growing"; statusText = "⚪ 未獲得"; }
+                    else if (currentStatus === "growing") { nextStatus = "decored"; statusText = "🟡 培育中/未4心"; }
+                    else if (currentStatus === "decored") { nextStatus = "missing"; statusText = "🟢 已穿戴飾品"; }
+
+                    card.onclick = () => handleStatusChange(item.id, nextStatus);
+                    card.innerHTML = `
+                        <span class="badge badge-${item.color}">${item.colorName}</span>
+                        <div class="pikmin-name">${item.name}</div>
+                        <div class="status-label">${statusText}</div>
+                    `;
+                    grid.appendChild(card);
+                });
+                section.appendChild(grid);
+                container.appendChild(section);
+            });
+        }
+
+        async function handleStatusChange(pikminId, nextStatus) {
+            if (currentUsername === "訪客") {
+                return alert("請先在上方輸入名字登入，才能記錄你的皮克敏喔！");
+            }
+            showLoading(true);
+
+            if(!globalCloudData[currentUsername]) globalCloudData[currentUsername] = {};
+            globalCloudData[currentUsername][pikminId] = nextStatus;
+
+            try {
+                const response = await fetch(BASE_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: "toggleStatus",
+                        username: currentUsername,
+                        pikmin_id: pikminId,
+                        status: nextStatus
+                    })
+                });
+                const result = await response.json();
+                if(result.status === "success") {
+                    await fetchCloudData(); 
+                }
+            } catch(e) {
+                alert("雲端同步失敗，請檢查網路連線。");
+                showLoading(false);
+            }
+        }
+
+        function filterColor(color) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.pikmin-card').forEach(card => {
+                card.style.display = (color === 'all' || card.getAttribute('data-color') === color) ? 'block' : 'none';
+            });
+
+            document.querySelectorAll('.category-section').forEach(section => {
+                const cards = section.querySelectorAll('.pikmin-card');
+                let hasVisibleCard = false;
+                cards.forEach(c => {
+                    if (c.style.display !== 'none') hasVisibleCard = true;
+                });
+                section.style.display = hasVisibleCard ? 'block' : 'none';
+            });
+        }
+
+        function showLoading(show) { document.getElementById('loading').style.display = show ? 'flex' : 'none'; }
+
+        fetchCloudData();
+    </script>
+</body>
+</html>
