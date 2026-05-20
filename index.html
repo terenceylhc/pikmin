@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pikmin 飾品精準管理系統 (自動登入版)</title>
+    <title>Pikmin 飾品精準管理系統 (點擊流暢版)</title>
     <style>
         :root {
             --bg-color: #f4f7f6;
@@ -98,7 +98,6 @@
         const BASE_URL = "https://script.google.com/macros/s/AKfycby_MQj5Xc87ieW1RJVqh7QJRhYWhAi8h92H5yGNZA5Ewg9wV2vRW01cIdnDqmskwAOS/exec"; 
 
         let isCloudMode = false;
-        // 🌟 優化 2：預設直接讀取上次登入的名字，不再每次都降級成「訪客」
         let currentUsername = localStorage.getItem('pikmin_server_user') || "訪客";
         let globalData = {}; 
         
@@ -162,7 +161,7 @@
             { category: "🌮 墨西哥餐廳", items: colors.map(c => ({ id: `mexican_${c.id}`, color: c.id, colorName: c.name, name: "沙拉盆/塔可" })) },
             { category: "🧺 自助洗衣店&乾洗店", items: colors.map(c => ({ id: `laundry_${c.id}`, color: c.id, colorName: c.name, name: "曬衣夾" })) },
             { category: "🥢 韓國餐廳（泡菜）", items: colors.map(c => ({ id: `korean_${c.id}`, color: c.id, colorName: c.name, name: "泡菜" })) },
-            { category: "⭐ 特殊活動：超級瑪利歐鑰匙圈", items: colors.slice(0, 4).map(c => ({ id: `mario_${c.id}`, color: c.id, colorName: c.name, name: "瑪利歐帽/磚塊" })) },
+            { category: "⭐ 特殊活動：超級瑪利歐鑰์匙圈", items: colors.slice(0, 4).map(c => ({ id: `mario_${c.id}`, color: c.id, colorName: c.name, name: "瑪利歐帽/磚塊" })) },
             { category: "⭐ 特殊活動：禮物貼紙（金色）", items: colors.map(c => ({ id: `gift_gold_${c.id}`, color: c.id, colorName: c.name, name: "金貼紙" })) },
             { category: "⭐ 特殊活動：復活節彩蛋", items: colors.map(c => ({ id: `easter_${c.id}`, color: c.id, colorName: c.name, name: "彩蛋外殼" })) },
             { category: "🃏 世界遊戲：遊戲卡牌", items: colors.map(c => ({ id: `poker_${c.id}`, color: c.id, colorName: c.name, name: "撲克牌" })) },
@@ -173,11 +172,9 @@
         ];
 
         function loadCachedData() {
-            // 🌟 優化 3：在輸入框貼心顯示上次記錄的名字
             if (currentUsername !== "訪客") {
                 document.getElementById('username-input').value = currentUsername;
             }
-            
             let localProgress = JSON.parse(localStorage.getItem(`pikmin_cloud_cache_${currentUsername}`)) || JSON.parse(localStorage.getItem('pikmin_local_progress')) || {};
             globalData = { [currentUsername]: localProgress };
             updateLeaderboard();
@@ -280,12 +277,16 @@
                     card.setAttribute('data-color', item.color);
                     card.setAttribute('id', `card_${item.id}`);
                     
-                    let nextStatus = "growing";
-                    if (currentStatus === "missing") nextStatus = "growing";
-                    else if (currentStatus === "growing") nextStatus = "decored";
-                    else if (currentStatus === "decored") nextStatus = "missing";
-
-                    card.onclick = () => changeProgress(item.id, nextStatus);
+                    card.onclick = () => {
+                        // 🌟 核心修正：點擊時「不需要看現在有沒有人在排隊」，手速多快就切多快！
+                        let nowStatus = globalData[currentUsername][item.id] || "missing";
+                        let nextStatus = "growing";
+                        if (nowStatus === "missing") nextStatus = "growing";
+                        else if (nowStatus === "growing") nextStatus = "decored";
+                        else if (nowStatus === "decored") nextStatus = "missing";
+                        
+                        changeProgress(item.id, nextStatus);
+                    };
                     
                     let statusText = "⚪ 未獲得";
                     if(currentStatus === "growing") statusText = "🟡 培育/未飾品";
@@ -306,12 +307,12 @@
         function changeProgress(pikminId, nextStatus) {
             if (currentUsername === "訪客") return alert("請先在上面欄位輸入你的名字點擊登入！");
             
+            // 1. 本地儲存與變數更新 (保證任何時候點擊，資料都是最新)
             if (!globalData[currentUsername]) globalData[currentUsername] = {};
             globalData[currentUsername][pikminId] = nextStatus;
-            
             localStorage.setItem(`pikmin_cloud_cache_${currentUsername}`, JSON.stringify(globalData[currentUsername]));
-            updateLeaderboard();
             
+            // 2. 畫面上立即（0毫秒）換色與換字
             const card = document.getElementById(`card_${pikminId}`);
             if(card) {
                 card.className = `pikmin-card ${nextStatus}`;
@@ -320,7 +321,10 @@
                 if(nextStatus === "decored") statusText = "🟢 已穿戴飾品";
                 card.querySelector('.status-label').innerText = statusText;
             }
+            
+            updateLeaderboard();
 
+            // 3. 丟給背景信箱去排隊
             updateQueue.push({ pikminId, nextStatus });
             processQueue();
         }
@@ -343,10 +347,10 @@
                         method: 'POST',
                         body: JSON.stringify({ action: "toggleStatus", username: currentUsername, pikmin_id: task.pikminId, status: task.nextStatus })
                     });
-                    updateQueue.shift();
+                    updateQueue.shift(); // 雲端收信成功，清除排隊的第一筆
                 } catch(e) {
-                    console.log("連線微弱，5秒後自動重新挑戰上傳");
-                    await new Promise(res => setTimeout(res, 5000));
+                    console.log("網絡微弱，等3秒再試");
+                    await new Promise(res => setTimeout(res, 3000));
                 }
             }
 
