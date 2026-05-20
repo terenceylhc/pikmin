@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pikmin 飾品精準管理系統 (點擊流暢版)</title>
+    <title>Pikmin 飾品精準管理系統 (全7色完整版)</title>
     <style>
         :root {
             --bg-color: #f4f7f6;
@@ -109,9 +109,10 @@
             { id: "purple", name: "紫" }, { id: "white", name: "白" }, { id: "winged", name: "羽翅" }, { id: "rock", name: "岩石" }
         ];
 
+        // 🌟 依據最新版圖鑑資訊調整後的精準數量資料庫
         const pikminData = [
             { category: "🍽️ 餐廳（廚師帽）", items: colors.map(c => ({ id: `restaurant_${c.id}`, color: c.id, colorName: c.name, name: "廚師帽" })) },
-            { category: "☕ 咖啡廳", items: colors.slice(0, 3).map(c => ({ id: `cafe_${c.id}`, color: c.id, colorName: c.name, name: "咖啡杯" })) },
+            { category: "☕ 咖啡廳（咖啡杯）", items: colors.map(c => ({ id: `cafe_${c.id}`, color: c.id, colorName: c.name, name: "咖啡杯" })) }, // 補齊至 7 色
             { category: "🧁 甜點店（馬卡龍）", items: colors.map(c => ({ id: `sweet_macaron_${c.id}`, color: c.id, colorName: c.name, name: "馬卡龍" })) },
             { category: "🍩 甜點店（甜甜圈）", items: colors.map(c => ({ id: `sweet_donut_${c.id}`, color: c.id, colorName: c.name, name: "甜甜圈" })) },
             { category: "🎬 電影院", items: colors.map(c => ({ id: `cinema_${c.id}`, color: c.id, colorName: c.name, name: "爆米花" })) },
@@ -126,7 +127,7 @@
             { category: "🚇 車站（電車紙模型）", items: colors.map(c => ({ id: `station_paper_${c.id}`, color: c.id, colorName: c.name, name: "電車紙模型" })) },
             { category: "🎟️ 車站（票券）", items: colors.map(c => ({ id: `station_ticket_${c.id}`, color: c.id, colorName: c.name, name: "票券" })) },
             { category: "🏖️ 海灘", items: colors.map(c => ({ id: `beach_${c.id}`, color: c.id, colorName: c.name, name: "貝殼" })) },
-            { category: "🍔 漢堡店（漢堡）", items: colors.slice(0, 4).map(c => ({ id: `burger_${c.id}`, color: c.id, colorName: c.name, name: "漢堡" })) },
+            { category: "🍔 漢堡店（漢堡/薯條/飲料）", items: colors.map(c => ({ id: `burger_${c.id}`, color: c.id, colorName: c.name, name: (c.id==='red'||c.id==='yellow') ? "漢堡" : (c.id==='blue' ? "薯條" : (c.id==='purple' ? "飲料" : "漢堡")) })) }, // 補齊至 7 色並標註造型
             { category: "🏪 便利店（瓶蓋）", items: colors.map(c => ({ id: `convenience_cap_${c.id}`, color: c.id, colorName: c.name, name: "瓶蓋" })) },
             { category: "🍿 便利店（零食）", items: colors.map(c => ({ id: `convenience_snack_${c.id}`, color: c.id, colorName: c.name, name: "零食" })) },
             { category: "🍄 超市（蘑菇）", items: colors.map(c => ({ id: `supermarket_mushroom_${c.id}`, color: c.id, colorName: c.name, name: "蘑菇" })) },
@@ -139,16 +140,16 @@
             { category: "📖 圖書館", items: colors.map(c => ({ id: `library_${c.id}`, color: c.id, colorName: c.name, name: "迷你書本" })) },
             { category: "🌳 路邊（貼紙）", items: colors.map(c => ({ id: `roadside_sticker_${c.id}`, color: c.id, colorName: c.name, name: "貼紙" })) },
             { category: "🪙 路邊（金幣）", items: colors.map(c => ({ id: `roadside_coin_${c.id}`, color: c.id, colorName: c.name, name: "金幣" })) },
-            { category: "🍣 壽司餐廳", items: colors.slice(0, 3).map(c => ({ id: `sushi_${c.id}`, color: c.id, colorName: c.name, name: "握壽司" })) },
+            { category: "🍣 壽司餐廳", items: colors.map(c => ({ id: `sushi_${c.id}`, color: c.id, colorName: c.name, name: "握壽司" })) }, // 補齊至 7 色
             { category: "⛰️ 山丘（山丘別針徽章）", items: colors.map(c => ({ id: `hill_${c.id}`, color: c.id, colorName: c.name, name: "山丘別針徽章" })) },
             { category: "🏟️ 體育館", items: colors.map(c => ({ id: `stadium_${c.id}`, color: c.id, colorName: c.name, name: "鑰匙圈" })) },
-            { category: "☔ 雨天", items: colors.slice(0, 3).map(c => ({ id: `rain_${c.id}`, color: c.id, colorName: c.name, name: "葉片帽" })) },
-            { category: "❄️ 下雪", items: colors.slice(0, 2).map(c => ({ id: `snow_${c.id}`, color: c.id, colorName: c.name, name: "雪人" })) },
+            { category: "☔ 雨天", items: colors.map(c => ({ id: `rain_${c.id}`, color: c.id, colorName: c.name, name: "葉片帽" })) }, // 補齊至 7 色
+            { category: "❄️ 下雪（雪人）", items: [{ id: "snow_blue", color: "blue", colorName: "藍", name: "雪人" }, { id: "snow_white", color: "white", colorName: "白", name: "雪人" }, { id: "snow_rock", color: "rock", colorName: "岩石", name: "雪人" }] }, // 擴充為 3 種雪人
             { category: "🎡 主題樂園", items: colors.map(c => ({ id: `amusement_${c.id}`, color: c.id, colorName: c.name, name: "門票" })) },
             { category: "🚌 公車站", items: colors.map(c => ({ id: `bus_${c.id}`, color: c.id, colorName: c.name, name: "公車玩具" })) },
             { category: "🍕 義式餐廳（披薩）", items: colors.map(c => ({ id: `italian_pizza_${c.id}`, color: c.id, colorName: c.name, name: "披薩" })) },
             { category: "🍝 義式餐廳（義大利麵）", items: colors.map(c => ({ id: `italian_pasta_${c.id}`, color: c.id, colorName: c.name, name: "義大利麵" })) },
-            { category: "🍜 拉麵店", items: colors.slice(0, 3).map(c => ({ id: `ramen_${c.id}`, color: c.id, colorName: c.name, name: "拉麵吊飾" })) },
+            { category: "🍜 拉麵店（拉麵鑰匙圈）", items: colors.map(c => ({ id: `ramen_${c.id}`, color: c.id, colorName: c.name, name: "拉麵吊飾" })) }, // 補齊至 7 色
             { category: "🌉 橋樑（橋樑別針）", items: colors.map(c => ({ id: `bridge_${c.id}`, color: c.id, colorName: c.name, name: "橋樑別針" })) },
             { category: "🏨 飯店（飯店備品）", items: colors.map(c => ({ id: `hotel_${c.id}`, color: c.id, colorName: c.name, name: "飯店備品" })) },
             { category: "💄 化妝品商店（化妝品）", items: colors.map(c => ({ id: `makeup_${c.id}`, color: c.id, colorName: c.name, name: "化妝品" })) },
@@ -161,7 +162,7 @@
             { category: "🌮 墨西哥餐廳", items: colors.map(c => ({ id: `mexican_${c.id}`, color: c.id, colorName: c.name, name: "沙拉盆/塔可" })) },
             { category: "🧺 自助洗衣店&乾洗店", items: colors.map(c => ({ id: `laundry_${c.id}`, color: c.id, colorName: c.name, name: "曬衣夾" })) },
             { category: "🥢 韓國餐廳（泡菜）", items: colors.map(c => ({ id: `korean_${c.id}`, color: c.id, colorName: c.name, name: "泡菜" })) },
-            { category: "⭐ 特殊活動：超級瑪利歐鑰์匙圈", items: colors.slice(0, 4).map(c => ({ id: `mario_${c.id}`, color: c.id, colorName: c.name, name: "瑪利歐帽/磚塊" })) },
+            { category: "⭐ 特殊活動：超級瑪利歐鑰匙圈", items: colors.slice(0, 4).map(c => ({ id: `mario_${c.id}`, color: c.id, colorName: c.name, name: "瑪利歐帽/磚塊" })) },
             { category: "⭐ 特殊活動：禮物貼紙（金色）", items: colors.map(c => ({ id: `gift_gold_${c.id}`, color: c.id, colorName: c.name, name: "金貼紙" })) },
             { category: "⭐ 特殊活動：復活節彩蛋", items: colors.map(c => ({ id: `easter_${c.id}`, color: c.id, colorName: c.name, name: "彩蛋外殼" })) },
             { category: "🃏 世界遊戲：遊戲卡牌", items: colors.map(c => ({ id: `poker_${c.id}`, color: c.id, colorName: c.name, name: "撲克牌" })) },
@@ -278,7 +279,6 @@
                     card.setAttribute('id', `card_${item.id}`);
                     
                     card.onclick = () => {
-                        // 🌟 核心修正：點擊時「不需要看現在有沒有人在排隊」，手速多快就切多快！
                         let nowStatus = globalData[currentUsername][item.id] || "missing";
                         let nextStatus = "growing";
                         if (nowStatus === "missing") nextStatus = "growing";
@@ -307,12 +307,10 @@
         function changeProgress(pikminId, nextStatus) {
             if (currentUsername === "訪客") return alert("請先在上面欄位輸入你的名字點擊登入！");
             
-            // 1. 本地儲存與變數更新 (保證任何時候點擊，資料都是最新)
             if (!globalData[currentUsername]) globalData[currentUsername] = {};
             globalData[currentUsername][pikminId] = nextStatus;
             localStorage.setItem(`pikmin_cloud_cache_${currentUsername}`, JSON.stringify(globalData[currentUsername]));
             
-            // 2. 畫面上立即（0毫秒）換色與換字
             const card = document.getElementById(`card_${pikminId}`);
             if(card) {
                 card.className = `pikmin-card ${nextStatus}`;
@@ -324,7 +322,6 @@
             
             updateLeaderboard();
 
-            // 3. 丟給背景信箱去排隊
             updateQueue.push({ pikminId, nextStatus });
             processQueue();
         }
@@ -347,7 +344,7 @@
                         method: 'POST',
                         body: JSON.stringify({ action: "toggleStatus", username: currentUsername, pikmin_id: task.pikminId, status: task.nextStatus })
                     });
-                    updateQueue.shift(); // 雲端收信成功，清除排隊的第一筆
+                    updateQueue.shift(); 
                 } catch(e) {
                     console.log("網絡微弱，等3秒再試");
                     await new Promise(res => setTimeout(res, 3000));
