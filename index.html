@@ -110,13 +110,12 @@
             { id: "purple", name: "紫" }, { id: "white", name: "白" }, { id: "winged", name: "羽翅" }, { id: "rock", name: "岩石" }
         ];
 
-        // 包含冰藍色的 8 色陣容
         const extendedColors = [
             ...colors,
             { id: "ice", name: "冰藍" }
         ];
 
-        // 🌟 最新官方同步版資料庫（依據您的最新回饋精準分配 7 色與 8 色格數）
+        // 🌟 最終官方同步版：所有大類與子分類均已修正並對齊格數
         const pikminData = [
             { category: "🍽️ 餐廳（廚師帽）- 8種", items: extendedColors.map(c => ({ id: `restaurant_${c.id}`, color: c.id, colorName: c.name, name: "廚師帽" })) },
             { category: "☕ 咖啡廳（咖啡杯）- 7種", items: colors.map(c => ({ id: `cafe_${c.id}`, color: c.id, colorName: c.name, name: "咖啡杯" })) },
@@ -125,11 +124,8 @@
             { category: "🎬 電影院", items: colors.map(c => ({ id: `cinema_${c.id}`, color: c.id, colorName: c.name, name: "爆米花" })) },
             { category: "💊 藥局", items: colors.map(c => ({ id: `pharmacy_${c.id}`, color: c.id, colorName: c.name, name: "牙刷" })) },
             { category: "🦁 動物園", items: colors.map(c => ({ id: `zoo_${c.id}`, color: c.id, colorName: c.name, name: "蒲公英" })) },
-            
-            // 🌟 森林分類：鍬形蟲與橡栗同步擴充為 8 種
             { category: "🪲 森林（鍬形蟲）- 8種", items: extendedColors.map(c => ({ id: `forest_beetle_${c.id}`, color: c.id, colorName: c.name, name: "鍬形蟲" })) },
             { category: "🌰 森林（橡栗）- 8種", items: extendedColors.map(c => ({ id: `forest_acorn_${c.id}`, color: c.id, colorName: c.name, name: "橡栗" })) },
-            
             { category: "🌊 水邊（擬餌）", items: colors.map(c => ({ id: `water_${c.id}`, color: c.id, colorName: c.name, name: "擬餌" })) },
             { category: "📮 郵局", items: colors.map(c => ({ id: `post_${c.id}`, color: c.id, colorName: c.name, name: "郵票" })) },
             { category: "🖼️ 美術館（畫框）", items: colors.map(c => ({ id: `art_frame_${c.id}`, color: c.id, colorName: c.name, name: "畫框" })) },
@@ -145,11 +141,8 @@
             { category: "🥖 麵包店（法國麵包）", items: colors.map(c => ({ id: `bakery_${c.id}`, color: c.id, colorName: c.name, name: "法國麵包" })) },
             { category: "✂️ 美容院", items: colors.map(c => ({ id: `salon_${c.id}`, color: c.id, colorName: c.name, name: "剪刀與梳子" })) },
             { category: "👚 服裝店（髮圈）", items: colors.map(c => ({ id: `clothes_${c.id}`, color: c.id, colorName: c.name, name: "髮圈" })) },
-            
-            // 🌟 公園分類：幸運草與四葉幸運草同步擴充為 8 種
             { category: "🌳 公園（幸運草）- 8種", items: extendedColors.map(c => ({ id: `park_clover_${c.id}`, color: c.id, colorName: c.name, name: "幸運草" })) },
             { category: "🍀 公園（四葉幸運草）- 8種", items: extendedColors.map(c => ({ id: `park_four_clover_${c.id}`, color: c.id, colorName: c.name, name: "四葉幸運草" })) },
-            
             { category: "📖 圖書館", items: colors.map(c => ({ id: `library_${c.id}`, color: c.id, colorName: c.name, name: "迷你書本" })) },
             { 
                 category: "🌳 路邊（貼紙）- 24種", 
@@ -181,36 +174,58 @@
             { category: "🎓 大學&學院（校徽胸針）", items: colors.slice(0, 3).map(c => ({ id: `university_${c.id}`, color: c.id, colorName: c.name, name: "校徽胸針" })) },
             { category: "🌮 墨西哥餐廳", items: colors.map(c => ({ id: `mexican_${c.id}`, color: c.id, colorName: c.name, name: "沙拉盆/塔可" })) },
             { category: "🧺 自助洗衣店&乾洗店", items: colors.map(c => ({ id: `laundry_${c.id}`, color: c.id, colorName: c.name, name: "曬衣夾" })) },
-            
-            // 🌟 韓國餐廳分類：擴充為 8 種
             { category: "🥢 韓國餐廳（泡菜）- 8種", items: extendedColors.map(c => ({ id: `korean_${c.id}`, color: c.id, colorName: c.name, name: "泡菜" })) },
-            
             { category: "⭐ 特殊活動：超級瑪利歐鑰匙圈", items: colors.slice(0, 4).map(c => ({ id: `mario_${c.id}`, color: c.id, colorName: c.name, name: "瑪利歐帽/磚塊" })) },
             { category: "⭐ 特殊活動：禮物貼紙（金色）", items: colors.map(c => ({ id: `gift_gold_${c.id}`, color: c.id, colorName: c.name, name: "金貼紙" })) },
             { category: "⭐ 特殊活動：復活節彩蛋", items: colors.map(c => ({ id: `easter_${c.id}`, color: c.id, colorName: c.name, name: "彩蛋外殼" })) },
             { category: "🃏 世界遊戲：遊戲卡牌", items: colors.map(c => ({ id: `poker_${c.id}`, color: c.id, colorName: c.name, name: "撲克牌" })) },
             { category: "🕹️ 世界遊戲：Nintendo遊戲機 1980-1995", items: colors.map(c => ({ id: `nintendo_${c.id}`, color: c.id, colorName: c.name, name: "紅白機/掌機" })) },
             { category: "🍼 特殊活動：奶嘴", items: colors.slice(0, 1).map(c => ({ id: `pacifier_${c.id}`, color: c.id, colorName: c.name, name: "奶嘴" })) },
-            
-            // 🌟 荷蘭木鞋鑰匙圈分類：擴充為 8 種
             { category: "👡 特殊活動：荷蘭木鞋鑰匙圈- 8種", items: extendedColors.map(c => ({ id: `clogs_${c.id}`, color: c.id, colorName: c.name, name: "木鞋" })) },
-            
-            // 🌟 遊戲卡匣分類：擴充為 8 種
             { category: "💾 世界遊戲：遊戲卡匣- 8種", items: extendedColors.map(c => ({ id: `cartridge_${c.id}`, color: c.id, colorName: c.name, name: "復古卡匣" })) },
-            
             { category: "🎄 節日活動：2025/2026裝飾飾品 - 8種", items: extendedColors.map(c => ({ id: `holiday_decor_${c.id}`, color: c.id, colorName: c.name, name: "節日裝飾球" })) }
         ];
+
+        // 🌟 防卡死核心：舊資料自動平滑相容過渡
+        function getSafeProgress(rawCache) {
+            let cleanData = {};
+            if (!rawCache || typeof rawCache !== 'object') return cleanData;
+            
+            // 遍歷所有舊快取，如果遇到舊的非標準 ID（例如舊的 roadside_red），自動映射轉換
+            for (let oldId in rawCache) {
+                let status = rawCache[oldId];
+                if (!status) continue;
+                
+                // 相容轉換：舊路邊 ID 映射到新結構的「綠色貼紙」中
+                if (oldId === "roadside_red") cleanData["roadside_sticker_green_red"] = status;
+                else if (oldId === "roadside_yellow") cleanData["roadside_sticker_green_yellow"] = status;
+                else if (oldId === "roadside_blue") cleanData["roadside_sticker_green_blue"] = status;
+                else if (oldId === "roadside_purple") cleanData["roadside_sticker_green_purple"] = status;
+                else if (oldId === "roadside_white") cleanData["roadside_sticker_green_white"] = status;
+                else if (oldId === "roadside_winged") cleanData["roadside_sticker_green_winged"] = status;
+                else if (oldId === "roadside_rock") cleanData["roadside_sticker_green_rock"] = status;
+                else {
+                    cleanData[oldId] = status; // 其餘標準 ID 直接繼承
+                }
+            }
+            return cleanData;
+        }
 
         function loadCachedData() {
             if (currentUsername !== "訪客") {
                 document.getElementById('username-input').value = currentUsername;
             }
+            
             if (!globalData || Object.keys(globalData).length === 0) {
                 globalData = {};
             }
+            
             if (!globalData[currentUsername]) {
-                globalData[currentUsername] = JSON.parse(localStorage.getItem(`pikmin_cloud_cache_${currentUsername}`)) || {};
+                // 讀取舊快取並透過安全防護函式進行轉型升級
+                let rawCache = JSON.parse(localStorage.getItem(`pikmin_cloud_cache_${currentUsername}`)) || JSON.parse(localStorage.getItem('pikmin_local_progress')) || {};
+                globalData[currentUsername] = getSafeProgress(rawCache);
             }
+            
             updateLeaderboard();
             renderSystem();
         }
@@ -226,7 +241,7 @@
                 document.getElementById('system-mode').style.background = "#e2e8f0";
                 document.getElementById('system-mode').style.color = "#475569";
                 document.getElementById('loading-text').innerText = " (已自動載入本地進度)";
-            }, 3000);
+            }, 3500);
 
             try {
                 const response = await fetch(`${BASE_URL}?action=getData`, { signal: controller.signal });
@@ -240,5 +255,176 @@
                     document.getElementById('system-mode').style.color = "#166534";
                     document.getElementById('loading-text').innerText = " (進度已完美對齊雲端)";
                     
-                    globalData = result.data || {};
+                    let cloudRaw = result.data || {};
+                    globalData = {};
+                    
+                    // 同步將雲端拉下來的每位訓練師資料進行安全轉型
+                    for (let user in cloudRaw) {
+                        globalData[user] = getSafeProgress(cloudRaw[user]);
+                    }
+                    
                     if (!globalData[currentUsername]) {
+                        globalData[currentUsername] = {};
+                    }
+                    
+                    localStorage.setItem(`pikmin_cloud_cache_${currentUsername}`, JSON.stringify(globalData[currentUsername]));
+                    updateLeaderboard();
+                    renderSystem();
+                }
+            } catch (e) {
+                clearTimeout(timeoutId);
+                document.getElementById('system-mode').innerText = "💾 單機離線版";
+                document.getElementById('loading-text').innerText = " (連線微弱，目前使用本地紀錄)";
+            }
+        }
+
+        function login() {
+            const input = document.getElementById('username-input').value.trim();
+            if(!input) return alert("請輸入名字！");
+            currentUsername = input;
+            localStorage.setItem('pikmin_server_user', currentUsername);
+            loadCachedData();
+            initSystem(); 
+        }
+
+        function updateLeaderboard() {
+            const leaderboardUl = document.getElementById('leaderboard');
+            leaderboardUl.innerHTML = '';
+            
+            if (!globalData[currentUsername]) globalData[currentUsername] = {};
+            
+            let scores = [];
+            for (let user in globalData) {
+                let decored = 0, growing = 0;
+                for (let pid in globalData[user]) {
+                    if (globalData[user][pid] === "decored") decored++;
+                    else if (globalData[user][pid] === "growing") growing++;
+                }
+                scores.push({ name: user, decored, growing });
+            }
+
+            if (!scores.some(s => s.name === currentUsername)) {
+                scores.push({ name: currentUsername, decored: 0, growing: 0 });
+            }
+
+            scores.sort((a,b) => b.decored - a.decored || b.growing - a.growing);
+            scores.forEach(s => {
+                leaderboardUl.innerHTML += `
+                    <li class="leaderboard-item">
+                        <span>👤 ${s.name}</span>
+                        <span><b style="color:#15803d;">${s.decored} 🟢</b> <span style="color:#b45309; margin-left:4px;">${s.growing} 🟡</span></span>
+                    </li>`;
+            });
+        }
+
+        function renderSystem() {
+            document.getElementById('current-user').innerText = currentUsername;
+            const container = document.getElementById('main-content');
+            container.innerHTML = '';
+
+            const myProgress = globalData[currentUsername] || {};
+
+            pikminData.forEach(cat => {
+                const section = document.createElement('div');
+                section.className = 'category-section';
+                section.innerHTML = `<h2 class="category-title">${cat.category}</h2>`;
+                
+                const grid = document.createElement('div');
+                grid.className = 'pikmin-grid';
+
+                cat.items.forEach(item => {
+                    const currentStatus = myProgress[item.id] || "missing"; 
+                    const card = document.createElement('div');
+                    card.className = `pikmin-card ${currentStatus}`;
+                    card.setAttribute('data-color', item.color);
+                    card.setAttribute('id', `card_${item.id}`);
+                    
+                    card.onclick = () => {
+                        let nowStatus = globalData[currentUsername][item.id] || "missing";
+                        let nextStatus = "growing";
+                        if (nowStatus === "missing") nextStatus = "growing";
+                        else if (nowStatus === "growing") nextStatus = "decored";
+                        else if (nowStatus === "decored") nextStatus = "missing";
+                        
+                        changeProgress(item.id, nextStatus);
+                    };
+                    
+                    let statusText = "⚪ 未獲得";
+                    if(currentStatus === "growing") statusText = "🟡 培育/未飾品";
+                    if(currentStatus === "decored") statusText = "🟢 已穿戴飾品";
+
+                    card.innerHTML = `
+                        <span class="badge badge-${item.color}">${item.colorName}</span>
+                        <div class="pikmin-name">${item.name}</div>
+                        <div class="status-label">${statusText}</div>
+                    `;
+                    grid.appendChild(card);
+                });
+                section.appendChild(grid);
+                container.appendChild(section);
+            });
+        }
+
+        function changeProgress(pikminId, nextStatus) {
+            if (currentUsername === "訪客") return alert("請先在上面欄位輸入你的名字點擊登入！");
+            
+            if (!globalData[currentUsername]) globalData[currentUsername] = {};
+            globalData[currentUsername][pikminId] = nextStatus;
+            localStorage.setItem(`pikmin_cloud_cache_${currentUsername}`, JSON.stringify(globalData[currentUsername]));
+            
+            const card = document.getElementById(`card_${pikminId}`);
+            if(card) {
+                card.className = `pikmin-card ${nextStatus}`;
+                let statusText = "⚪ 未獲得";
+                if(nextStatus === "growing") statusText = "🟡 培育/未飾品";
+                if(nextStatus === "decored") statusText = "🟢 已穿戴飾品";
+                card.querySelector('.status-label').innerText = statusText;
+            }
+            
+            updateLeaderboard();
+
+            updateQueue.push({ pikminId, nextStatus });
+            processQueue();
+        }
+
+        async function processQueue() {
+            if (isProcessingQueue || updateQueue.length === 0) return;
+            isProcessingQueue = true;
+
+            while (updateQueue.length > 0) {
+                const task = updateQueue[0];
+                document.getElementById('loading-text').innerText = ` (📡 背景剩餘 ${updateQueue.length} 筆同步中...)`;
+
+                if (!isCloudMode) {
+                    updateQueue.shift();
+                    continue;
+                }
+
+                try {
+                    await fetch(BASE_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: "toggleStatus", username: currentUsername, pikmin_id: task.pikminId, status: task.nextStatus })
+                    });
+                    updateQueue.shift(); 
+                } catch(e) {
+                    console.log("網絡微弱，等3秒再試");
+                    await new Promise(res => setTimeout(res, 3000));
+                }
+            }
+
+            document.getElementById('loading-text').innerText = " (☁️ 進度全數完全同步)";
+            isProcessingQueue = false;
+        }
+
+        function filterColor(color) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.pikmin-card').forEach(card => {
+                card.style.display = (color === 'all' || card.getAttribute('data-color') === color) ? 'block' : 'none';
+            });
+        }
+
+        initSystem();
+    </script>
+</body>
+</html>
